@@ -14,6 +14,8 @@ class MainScreen: UIViewController, Storyboarded {
     //MARK:- Properties
     weak var coordinator: MainCoordinator?
     var centralManager: CBCentralManager? //this is what we'll use to poll for nearby bluetooth devices
+    var names = [String]()
+    var rssis = [NSNumber]()
     
     //MARK:- IBOutlets
     @IBOutlet weak var tableView: UITableView!
@@ -59,14 +61,14 @@ class MainScreen: UIViewController, Storyboarded {
 //MARK:- Extensions
 extension MainScreen : UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 100
+        return names.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "MainCell", for: indexPath) as? MainCell else { fatalError("Could not initalize cell!") }
         
-            cell.peripheralLabel.text = "Device #1"
-            cell.rssiLabel.text = "RSSI: -85"
+            cell.peripheralLabel.text = names[indexPath.row]
+            cell.rssiLabel.text = "RSSI: \(rssis[indexPath.row])"
             
         return cell
     }
@@ -89,12 +91,14 @@ extension MainScreen : CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
         //this contains all the info about the nearby BT devices that we'd want
         if let peripheralName = peripheral.name {
-            print("Peripheral name: \(peripheralName)")
+            names.append(peripheralName)
+        } else {
+            let uuidString = peripheral.identifier.uuidString
+            names.append(uuidString)
         }
-        print("UUID: \(peripheral.identifier.uuidString)")
-        print("Peripheral RSSI: \(RSSI)")
-        print("Ad data: \(advertisementData)")
-        print("*******************************")
+        
+        rssis.append(RSSI)
+        tableView.reloadData()
     }
     
     
