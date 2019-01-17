@@ -47,13 +47,20 @@ class MainScreen: UIViewController, Storyboarded {
     }
     
     func startBluetoothScanning() {
-        //scanning continues until told to stop
+        centralManager?.stopScan()
+        
+        names = []
+        rssis = []
+        
+        tableView.reloadData()
+        
         centralManager?.scanForPeripherals(withServices: nil, options: [:])
     }
     
     //MARK:- Updating UI
     @objc func refreshAvailableBTConnections() {
-        print("refresh tapped")
+        //reset the arrays, reload tableView, stop old scan and start new scan
+        startBluetoothScanning()
     }
 
 }
