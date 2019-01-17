@@ -16,6 +16,7 @@ class MainScreen: UIViewController, Storyboarded {
     var centralManager: CBCentralManager? //this is what we'll use to poll for nearby bluetooth devices
     var names = [String]()
     var rssis = [NSNumber]()
+    var refreshTimer: Timer!
     
     //MARK:- IBOutlets
     @IBOutlet weak var tableView: UITableView!
@@ -32,35 +33,39 @@ class MainScreen: UIViewController, Storyboarded {
         
         tableView.delegate = self
         tableView.dataSource = self
-
-        setupBluetoothManager()
         
         //navbar setup
         title = "Bluetooth Tracker"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refreshAvailableBTConnections))
         
+        setupBluetoothManager()
     }
     
     //MARK:- Bluetooth discovery methods
+    func initializeRefreshTimer() {
+        refreshTimer = Timer.scheduledTimer(timeInterval: 10, target: self, selector: #selector(refreshAvailableBTConnections), userInfo: nil, repeats: true)
+    }
+    
     func setupBluetoothManager() {
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
     
     func startBluetoothScanning() {
-        centralManager?.stopScan()
-        
         names = []
         rssis = []
         
         tableView.reloadData()
-        
         centralManager?.scanForPeripherals(withServices: nil, options: [:])
     }
     
     //MARK:- Updating UI
     @objc func refreshAvailableBTConnections() {
         //reset the arrays, reload tableView, stop old scan and start new scan
+        centralManager?.stopScan()
+        refreshTimer.invalidate()
+        
         startBluetoothScanning()
+        initializeRefreshTimer()
     }
 
 }
@@ -87,6 +92,7 @@ extension MainScreen : CBCentralManagerDelegate {
         switch central.state {
         case .poweredOn:
             startBluetoothScanning()
+            initializeRefreshTimer()
             print("Performing scan") //perform a scan for nearby devices
         case .poweredOff:
             displayAlert(title: "Bluetooth is unavailable", message: "Please ensure that your bluetooth is turned on and ready to rock.")
