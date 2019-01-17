@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreBluetooth
 
 class MainCoordinator : Coordinator {
     var childCoordinators = [Coordinator]()
@@ -22,6 +23,5 @@ class MainCoordinator : Coordinator {
         vc.coordinator = self
         navigationController.pushViewController(vc, animated: false) //false because this is the initial screen
     }
-    
     
 }
